@@ -1,6 +1,6 @@
 # Python Scripts for Running MTurk External HITs from the Command Line
 
-This repo contains a lightweight API for running external HITs from the command line. The motivation behind this repo is to enable similar functionality to Amazon's old Command Line Interface (CLI) for MTurk, which [depreciated as of June 1st, 2015](https://forums.aws.amazon.com/ann.jspa?annID=6686). The scripts contained in this repo mostly mirror the core methods and workflow of the old MTurk CLI.
+This repo contains a lightweight API for running external HITs from the command line. The motivation behind this repo is to enable similar functionality to Amazon's old Command Line Interface (CLI) for MTurk, which [depreciated as of June 1st, 2019](https://forums.aws.amazon.com/ann.jspa?annID=6686). The scripts contained in this repo mostly mirror the core methods and workflow of the old MTurk CLI.
 
 There are a couple files in this repo that must be configured to run a specific study. I will point out which scripts these are and how potential users can easily modify them to meet their needs.
 
