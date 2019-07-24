@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- Replace ExternalURL with the url for the landing page of your HIT. 
+    Make sure to leave ? at the end of the url so that parameters can be added programmatically.  -->
+<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd">
+    <ExternalURL>https://external_hit_server_url/landing_page?</ExternalURL>
+    <FrameHeight>450</FrameHeight>
+</ExternalQuestion>
+
