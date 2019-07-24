@@ -92,6 +92,21 @@ We launched a HIT in Production mode, but we want to stop workers from accepting
     `python expire_hit.py -prod`
 
 
+**get_balance.py**
+
+This script retrieves and reports the balance for your Requester account. Use this script to check how much money you have left to pay workers.
+
+**Arguments:**
+
+* *'-prod'* -- Retrieve balance for your Requester account (in Production mode), rather than the Sandbox (default). If you do not supply this argument, the balance reported will be $10,000 (in the Sandbox).
+
+**Example:**
+
+We want to know the balance for our Requester account. We should run:
+
+    `python get_balance.py -prod`
+
+
 **get_results.py**
 
 This script retrieves results for a HIT with its HITId stored in `hit_info.log`. Retrieving results entails three things: (1) Updating the `hit_info.log` file to reflect the current number of assignements available and pending; (2) Writing information about assignments with `Status == 'Submitted'` to a file called `results.log`; and (3) Writing a progress report on the current set of HIT assignments to the terminal, so the user can track how many assignements have been completed and how may are pending. The `results.log` file is required to run `python approve_hit.py`. Users should feel free to run this script repeatedly while waiting for workers to finish their assignments.
