@@ -7,6 +7,9 @@ from tzlocal import get_localzone as tzlocal
 # Use this boolean to control Production vs Sandbox mode (default to Sandbox).
 production = False
 
+# Use this string to differentiate batches of HIT assignments in order to run multiple batches concurrently.
+batch = ''
+
 # Use this boolean to indicate if we are overriding a rejection.
 override_reject = False
 
@@ -25,7 +28,10 @@ if (len(sys.argv) > 1):
         elif (sys.argv[i] == '-override'):
             # Override a previous rejection by approving this HIT.
             override_reject = True
-        elif (i > 0):
+        elif ((sys.argv[i] == '-batch') & (len(sys.argv) > (i + 1))):
+            # Name .log files according to given batch name.
+            batch = '-' + sys.argv[(i + 1)]
+        elif ((i > 0) & (len(sys.argv[i]) == 13)): # worker ids are always 13 characters long
             worker_list.append(sys.argv[i])
 
 # Designate target url for either Production or Sandbox.
@@ -45,13 +51,13 @@ mturk = session.client('mturk',
 
 # Get the information for assignments in this HIT from local file.
 assignments = []
-with open('results.log', 'r') as results:
+with open(file = 'logs/results' + batch +'.log', mode = 'r') as results:
     results_string = results.read()
     assignments = eval(results_string)
 
 # Exit if there is no assignment info.
 if not assignments:
-    print("No assignments in results.log. Try reruning get_results.py... terminating script")
+    print("No assignments in results" + batch + ".log. Try reruning get_results.py... terminating script")
     sys.exit()
 
 # Iterate through assignments, approving them if they are not in the skip list.

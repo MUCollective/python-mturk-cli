@@ -7,6 +7,9 @@ from tzlocal import get_localzone as tzlocal
 # Use this boolean to control Production vs Sandbox mode (default to Sandbox).
 production = False
 
+# Use this string to differentiate batches of HIT assignments in order to run multiple batches concurrently.
+batch = ''
+
 # Read argument for mode.
 script = sys.argv[0]
 if (len(sys.argv) > 1):
@@ -14,6 +17,9 @@ if (len(sys.argv) > 1):
         if (sys.argv[i] == '-prod'):
             # Create session in Production mode.
             production = True
+        elif ((sys.argv[i] == '-batch') & (len(sys.argv) > (i + 1))):
+            # Name .log files according to given batch name.
+            batch = '-' + sys.argv[(i + 1)]
 
 # Designate target url for either Production or Sandbox.
 if production:
@@ -32,7 +38,7 @@ mturk = session.client('mturk',
 
 # Get the information for the last HIT created from local file.
 hit ={}
-with open('hit_info.log', 'r') as hit_info:
+with open(file = 'logs/hit_info' + batch + '.log', mode = 'r') as hit_info:
     hit_string = hit_info.read()
     hit = eval(hit_string)
 # Store HIT Id.
@@ -44,7 +50,7 @@ hit = mturk.get_hit(
 )
 
 # Save HIT info to a .log file for subsequent access.
-with open(file = 'hit_info.log', mode = 'w') as hit_info:
+with open(file = 'logs/hit_info' + batch + '.log', mode = 'w') as hit_info:
     hit_info.write( str(hit['HIT']) )
 print("*** Updating info for HIT with Id " + hit_id + " ***")
 
@@ -54,9 +60,9 @@ assignments = mturk.list_assignments_for_hit(
 )
 
 # Save Assignments information (results) to a .log file for subsequent access.
-with open(file = 'results.log', mode = 'w') as results:
+with open(file = 'logs/results' + batch + '.log', mode = 'w') as results:
     results.write( str(assignments['Assignments']) )
-print("*** Writing information about completed assignments to results.log ***")
+print("*** Writing information about completed assignments to logs/results" + batch + ".log ***")
 
 # Count 'Submitted' assignements.
 assignment_completed = len([assignment for assignment in assignments['Assignments'] if assignment['AssignmentStatus'] == 'Submitted'])

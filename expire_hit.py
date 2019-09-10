@@ -7,6 +7,9 @@ from tzlocal import get_localzone as tzlocal
 # Use this boolean to control Production vs Sandbox mode (default to Sandbox).
 production = False
 
+# Use this string to differentiate batches of HIT assignments in order to run multiple batches concurrently.
+batch = ''
+
 # Use this boolean to control whether all HITs expire or just the last one to be created.
 expire_all = False
 
@@ -20,6 +23,9 @@ if (len(sys.argv) > 1):
         elif (sys.argv[i] == '-all'):
             # Set condition name.
             expire_all = True
+        elif ((sys.argv[i] == '-batch') & (len(sys.argv) > (i + 1))):
+            # Name .log files according to given batch name.
+            batch = '-' + sys.argv[(i + 1)]
 
 # Double check that we actually want to expire all HIts for this requester account.
 if expire_all:
@@ -62,7 +68,7 @@ if expire_all:
 else:
     # Get the information for the last HIT created from local file.
     last_hit ={}
-    with open('hit_info.log', 'r') as hit_info:
+    with open(file = 'logs/hit_info' + batch + '.log', mode = 'r') as hit_info:
         last_hit_string = hit_info.read()
         last_hit = eval(last_hit_string)
     print("*** Forcing HIT with Id " + last_hit['HITId'] + " to expire ***")

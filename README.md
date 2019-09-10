@@ -28,46 +28,50 @@ These scripts should work out of the box with no need to adjust them.
 
 **approve_hit.py**
 
-This script is used to approve work on assignments. The specific AssignmentIds that are approved are read in from the `results.log` file which is generated when you run `python get_results.py`. You can choose to skip over specific workers when approving a set of assignments for a HIT. Alternatively, you can choose to override previous rejections for a specific set of workers. 
+This script is used to approve work on assignments. The specific AssignmentIds that are approved are read in from the `logs/results*.log` file which is generated when you run `python get_results.py`. You can choose to skip over specific workers when approving a set of assignments for a HIT. Alternatively, you can choose to override previous rejections for a specific set of workers. 
 I have not implemented an analogous rejection script, as it is unethical to reject HIT assignments (i.e., refuse to pay workers for completed assignements) in most cases. However, this script could be easily modified to support such behavior if needed.
 
 **Arguments:**
 
 * *'-prod'* -- Approve HIT assignments run in the Production mode, rather than the Sandbox (default). If you do not supply this argument, assignments will only be approved if they were completed in the Sandbox.
 * *'-override'* -- Approve HIT assignments for which work was previously rejected, overriding the rejection. If you supply this argument, you must also supply each WorkerId you want to approve.
+* *'-batch'* -- If you are running multiple batches of HITs at once (e.g., for different conditions in an experiment), you must designate a name for each batch using the *'-batch'* argument followed by a unique identifier for each batch. For example, calling `python approve_hit.py -batch 1` would approve the assignements stored in the file `logs/results-1.log`. Note that the batch name follows the *'-batch'* argument separated by a space.
 * *WorkerIds* -- You can supply a series of WorkerIds as arguments. If you are overriding a previous rejection, only these workers will be approved. If you are approving work for the first time, these workers will be skipped and their work will not be approved.
 
 **Example:**
 
-After launching a HIT in Production using `python create_hit.py -prod`, waiting for workers to finish their assignments, and generating a `results.log` file using `python get_results.py -prod`, we can approve their work by running:
+After launching a HIT in Production using `python create_hit.py -prod`, waiting for workers to finish their assignments, and generating a `logs/results.log` file using `python get_results.py -prod`, we can approve their work by running:
 
     `python approve_hit.py -prod`
 
 
 **create_hit.py**
 
-This script creates a HIT according to the specifications in `study_spec.py` and `study.question`. It saves a file called `hit_info.log` which contains the HITId that is needed to access results, expire, or delete the HIT. This script does not support running multiple HITs from the same directory at once since each new call to `python create_hit.py` will overwrite the `hit_info.log` file.
+This script creates a HIT according to the specifications in `study_spec.py` and `study.question`. It saves a file called `logs/hit_info*.log` which contains the HITId that is needed to access results, expire, or delete the HIT. In order to run multiple HITs from the same directory at once, use the *'-batch'* argument to prevent each new call to `python create_hit.py` from overwriting the `logs/hit_info.log` file.
 
 **Arguments:**
 
 * *'-prod'* -- Launch a HIT in Production mode, rather than the Sandbox (default). If you do not supply this argument, HITs will launch in the Sandbox.
-* *Condition* -- Supply a condition name that will be assigned as a url parameter to the landing page, i.e., `https://external_hit_server_url/landing_page?cond=<argument>`. This is intended as a way to assign sets of workders to different versions of the task (e.g., in a between-subjects experiment).
+* *'-batch'* -- If you are running multiple batches of HITs at once (e.g., for different conditions in an experiment), you must designate a name for each batch using the *'-batch'* argument followed by a unique identifier for each batch. For example, calling `python create_hit.py -batch 1` would create a new set of assignments for your HIT and store the HIT information in the file `logs/hit_info-1.log`. Note that the batch name follows the *'-batch'* argument separated by a space. This allows the user to launch multiple sets of HIT assignments concurrently as long as those sets of assignments have different batch names. 
+* *'-cond'* -- If your external HIT relies on passing a condition name as a url parameter on the landing page (e.g., `https://external_hit_hostserver_url/landing_page?cond=<argument>`), you must supply a condition name as an argument using the *'-cond'* followed by the string representing the condition you would like to run. This is intended as a way to assign sets of workders to different versions of the task (e.g., in a between-subjects experiment). Omit the condition argument if you do not want to add a url parameter. 
+**Note:** In order for condition assignment to work, you will need to open the code for `create_hit.py` and change the hardcoded variable `webpage_substring = 'landing_page?'` to match the substring at the end of the url for your external HIT. Be sure that your url ends in a '?' so that url parameters can be appended to create a well-formed web address.
 
 **Example:**
 
 We are running a study in Production mode, and we want to launch a HIT with a set of assignments in the 'control' condition. We should run:
 
-    `python create_hit.py -prod control`
+    `python create_hit.py -prod -cond control`
 
 
 **delete_hit.py**
 
-This script deletes a HIT based on the HITId stored in `hit_info.log`. Deleted HITs cannot be reviewed, so only do this once you finished accepting/rejecting work. You also have the option of deleting all HITs hosted by your requester account.
+This script deletes a HIT based on the HITId stored in `logs/hit_info*.log`. Deleted HITs cannot be reviewed, so only do this once you finished accepting/rejecting work. You also have the option of deleting all HITs hosted by your requester account.
 
 **Arguments:**
 
 * *'-prod'* -- Delete a HIT that was launched in Production mode, rather than the Sandbox (default). If you do not supply this argument, HITs will be deleted only if they were run in the Sandbox.
 * *'-all'* -- Delete all HITs hosted by your requester account. Be really careful about doing this, especially if you have multiple colleagues using the same requester account.
+* *'-batch'* -- If you are running multiple batches of HITs at once (e.g., for different conditions in an experiment), you must designate a name for each batch using the *'-batch'* argument followed by a unique identifier for each batch. For example, calling `python delete_hit.py -batch 1` would delete the HIT whose HITId is stored in the file `logs/hit_info-1.log`. Note that the batch name follows the *'-batch'* argument separated by a space.
 
 **Example:**
 
@@ -78,12 +82,13 @@ We are completely finished with a HIT we ran in Production mode, and we want cle
 
 **expire_hit.py**
 
-This script forces a HIT with its HITId stored in `hit_info.log` to expire immediately. Expiring a HIT is a new "stop button" if you lauched a HIT but realized that you made a mistake. This will prevent workers from accepting the remaining available HITs, but workers will still be able to finish pending HITs. You also have the option of expiring all HITs hosted by your requester account. Expired HITs can be extended using the `update_expiration_for_hit()` method in the `boto3` Python module, however, I have not yet created a script supporting this behavior.
+This script forces a HIT with its HITId stored in `logs/hit_info*.log` to expire immediately. Expiring a HIT is a new "stop button" if you lauched a HIT but realized that you made a mistake. This will prevent workers from accepting the remaining available HITs, but workers will still be able to finish pending HITs. You also have the option of expiring all HITs hosted by your requester account. Expired HITs can be extended using the `update_expiration_for_hit()` method in the `boto3` Python module, however, I have not yet created a script supporting this behavior.
 
 **Arguments:**
 
 * *'-prod'* -- Expire a HIT that was launched in Production mode, rather than the Sandbox (default). If you do not supply this argument, HITs will be expired only if they were run in the Sandbox.
 * *'-all'* -- Expire all HITs hosted by your requester account. Be really careful about doing this, especially if you have multiple colleagues using the same requester account.
+* *'-batch'* -- If you are running multiple batches of HITs at once (e.g., for different conditions in an experiment), you must designate a name for each batch using the *'-batch'* argument followed by a unique identifier for each batch. For example, calling `python expired_hit.py -batch 1` would expire the HIT whose HITId is stored in the file `logs/hit_info-1.log`. Note that the batch name follows the *'-batch'* argument separated by a space.
 
 **Example:**
 
@@ -109,11 +114,12 @@ We want to know the balance for our Requester account. We should run:
 
 **get_results.py**
 
-This script retrieves results for a HIT with its HITId stored in `hit_info.log`. Retrieving results entails three things: (1) Updating the `hit_info.log` file to reflect the current number of assignements available and pending; (2) Writing information about assignments with `Status == 'Submitted'` to a file called `results.log`; and (3) Writing a progress report on the current set of HIT assignments to the terminal, so the user can track how many assignements have been completed and how may are pending. The `results.log` file is required to run `python approve_hit.py`. Users should feel free to run this script repeatedly while waiting for workers to finish their assignments.
+This script retrieves results for a HIT with its HITId stored in `logs/hit_info*.log`. Retrieving results entails three things: (1) Updating the `logs/hit_info*.log` file to reflect the current number of assignements available and pending; (2) Writing information about assignments with `Status == 'Submitted'` to a file called `logs/results*.log`; and (3) Writing a progress report on the current set of HIT assignments to the terminal, so the user can track how many assignements have been completed and how may are pending. The `logs/results*.log` file is required to run `python approve_hit.py`. Users should feel free to run this script repeatedly while waiting for workers to finish their assignments.
 
 **Arguments:**
 
 * *'-prod'* -- Retrieve results for a HIT that was launched in Production mode, rather than the Sandbox (default). If you do not supply this argument, results will be retrieved only if a HIT was run in the Sandbox.
+* *'-batch'* -- If you are running multiple batches of HITs at once (e.g., for different conditions in an experiment), you must designate a name for each batch using the *'-batch'* argument followed by a unique identifier for each batch. For example, calling `python get_results.py -batch 1` would retrieve results for the HIT whose HITId is stored in the file `logs/hit_info-1.log`. Note that the batch name follows the *'-batch'* argument separated by a space. This allows the user to monitor progress on multiple sets of assignments concurrently as long as those sets of assignments have different batch names. 
 
 **Example:**
 
@@ -169,9 +175,12 @@ You'll want to adjust the contents of `qualifications` to meet your needs. Find 
 
 This file contains XML code that tells MTurk the url for your external HIT. To run your external HIT you will need to proved a link to your landing page in place of the dummy url in this file:
 
-    <ExternalURL>https://external_hit_server_url/landing_page?</ExternalURL>
+    <ExternalURL>https://external_hit_hostserver_url/landing_page?</ExternalURL>
 
-Make sure you leave the '?' at the end of the url for your landing page so that `create_hit.py` can add a condition as a url parameter (e.g., 'https://external_hit_server_url/landing_page?*cond=control*').
+*If you intend to use `create_hit.py` to add a condition as a url parameter* (e.g., 'https://external_hit_hostserver_url/landing_page?*cond=control'): 
+
+* Make sure you leave the '?' at the end of the external HIT url for your landing page so that url parameters can be appended to create a well-formed web address.
+* You will need to open the code for `create_hit.py` and change the hardcoded variable `webpage_substring = 'landing_page?'` to match the substring at the end of the url for your external HIT. 
 
 
 ---
@@ -182,7 +191,7 @@ The following lists step through the most straightforward use cases for these sc
 **Sandbox Testing:**
 
 1. Set up your HIT by creating a website, adding the landing page url to `study.question`, and filling in `study_spec.py` to meet your needs.
-2. Launch the HIT on the Sandbox for testing by running `python create_hit.py <condition>`.
+2. Launch the HIT on the Sandbox for testing by running `python create_hit.py -cond <condition>`.
 3. Get results from the Sandbox test run using `python get_results.py`. If you accidentally created extra HITs, you can force them to expire using `python expire_hit.py`.
 4. Approve work using `python approve_hit.py`. 
 5. Delete the HIT using `python delete_hit.py`.
@@ -191,7 +200,7 @@ The following lists step through the most straightforward use cases for these sc
 **Running HITs in Production:**
 
 1. Set up your HIT by creating a website, adding the landing page url to `study.question`, and filling in `study_spec.py` to meet your needs. *You should probably do Sandbox testing to check everything before launching in Production.*
-2. Launch the HIT in Production mode by running `python create_hit.py -prod <condition>`.
+2. Launch the HIT in Production mode by running `python create_hit.py -prod -cond <condition>`.
 3. Get results from Production mode run using `python get_results.py -prod`. If you accidentally created extra HITs, you can force them to expire using `python expire_hit.py -prod`.
 4. Approve work using `python approve_hit.py -prod`. 
 5. Delete the HIT using `python delete_hit.py -prod`.
