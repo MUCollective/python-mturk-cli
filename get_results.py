@@ -64,6 +64,14 @@ with open(file = 'logs/results' + batch + '.log', mode = 'w') as results:
     results.write( str(assignments['Assignments']) )
 print("*** Writing information about completed assignments to logs/results" + batch + ".log ***")
 
+# # Testing 
+# with open(file = 'logs/results' + batch + '.log', mode = 'r') as results:
+#     results_string = results.read()
+#     assignments = eval(results_string)
+#     print(len(assignments))
+#     assignment_completed = len([assignment for assignment in assignments if assignment['AssignmentStatus'] == 'Submitted'])
+#     print(assignment_completed)
+
 # Count 'Submitted' assignements.
 assignment_completed = len([assignment for assignment in assignments['Assignments'] if assignment['AssignmentStatus'] == 'Submitted'])
 

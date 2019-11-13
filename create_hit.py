@@ -66,11 +66,11 @@ if (bool(condition) & (condition != 'none')):
     url_param = 'cond=' + condition # format condition as url parameter
     idx = question.find(webpage_substring) # find the place where the url parameter should be inserted
     question = question[:idx + len(webpage_substring)] + url_param + question[idx + len(webpage_substring):] # insert url parameter
-print(question)
+# print(question)
 
 # Create the HIT. Here we supply all the arguments we usually put in the .properties file for our external HIT.
 hit = mturk.create_hit(
-    Title = spec['title'],
+    Title = spec['title'] + batch, # append batch name to title to generate different HIT Type
     Description = spec['description'],
     Keywords = spec['keywords'],
     Reward = spec['reward'],

@@ -204,3 +204,31 @@ The following lists step through the most straightforward use cases for these sc
 3. Get results from Production mode run using `python get_results.py -prod`. If you accidentally created extra HITs, you can force them to expire using `python expire_hit.py -prod`.
 4. Approve work using `python approve_hit.py -prod`. 
 5. Delete the HIT using `python delete_hit.py -prod`.
+
+
+**Launching Multiple Batches of HIT Assignments Simultaniously:**
+
+1. Set up your HIT by creating a website, adding the landing page url to `study.question`, and filling in `study_spec.py` to meet your needs. *You should probably do Sandbox testing to check everything before launching in Production.*
+2. Launch multiple sets of HIT assignments simultaniously in Production mode by calling `create_hit.py` multiple times with different batch arguments. 
+
+    `python create_hit.py -prod -cond <condition1> -batch 1`
+    `python create_hit.py -prod -cond <condition2> -batch 2`
+    `python create_hit.py -prod -cond <condition3> -batch 3`
+
+3. Get results from each set of HIT assignments launched in Production mode using the same batch arguments.
+
+    `python get_results.py -prod -batch 1`
+    `python get_results.py -prod -batch 2`
+    `python get_results.py -prod -batch 3`
+
+4. Approve work for each set of HIT assignments using the same batch arguments.
+
+    `python approve_hit.py -prod -batch 1`
+    `python approve_hit.py -prod -batch 2`
+    `python approve_hit.py -prod -batch 3`
+
+5. Delete each HIT using the same batch argument. 
+    
+    `python delete_hit.py -prod -batch 1`
+    `python delete_hit.py -prod -batch 2`
+    `python delete_hit.py -prod -batch 3`
