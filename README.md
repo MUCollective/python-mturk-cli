@@ -12,9 +12,11 @@ These scripts use the `boto3` Python module. If you don't already have it instal
 
 You will also need to set up a file called `~/.aws/credentials`. This is where `boto3` will look for the security credentials for your MTurk Requester account. Storing these credentials locally mitigates security risks introduced when credentials are hardcoded into scripts like these. To create the credentials file, first navigate to the appropriate folder by entering `cd ~/.aws/` in the terminal, and then enter `touch credentials`. Use your preferred text editor to add the following to the credentials file.
 
-    [default]
-    aws_access_key_id = YOUR_KEY
-    aws_secret_access_key = YOUR_SECRET
+```
+[default]
+aws_access_key_id = YOUR_KEY
+aws_secret_access_key = YOUR_SECRET
+```
 
 
 ---
@@ -42,7 +44,9 @@ I have not implemented an analogous rejection script, as it is unethical to reje
 
 After launching a HIT in Production using `python create_hit.py -prod`, waiting for workers to finish their assignments, and generating a `logs/results.log` file using `python get_results.py -prod`, we can approve their work by running:
 
-    `python approve_hit.py -prod`
+```
+python approve_hit.py -prod
+```
 
 
 **create_hit.py**
@@ -60,7 +64,9 @@ This script creates a HIT according to the specifications in `study_spec.py` and
 
 We are running a study in Production mode, and we want to launch a HIT with a set of assignments in the 'control' condition. We should run:
 
-    `python create_hit.py -prod -cond control`
+```
+python create_hit.py -prod -cond control
+```
 
 
 **delete_hit.py**
@@ -77,7 +83,9 @@ This script deletes a HIT based on the HITId stored in `logs/hit_info*.log`. Del
 
 We are completely finished with a HIT we ran in Production mode, and we want clear it from our queue. We should run:
 
-    `python delete_hit.py -prod`
+```
+python delete_hit.py -prod
+```
 
 
 **expire_hit.py**
@@ -94,7 +102,9 @@ This script forces a HIT with its HITId stored in `logs/hit_info*.log` to expire
 
 We launched a HIT in Production mode, but we want to stop workers from accepting any remaining available HITs. We should run:
 
-    `python expire_hit.py -prod`
+```
+python expire_hit.py -prod
+```
 
 
 **get_balance.py**
@@ -109,7 +119,9 @@ This script retrieves and reports the balance for your Requester account. Use th
 
 We want to know the balance for our Requester account. We should run:
 
-    `python get_balance.py -prod`
+```
+python get_balance.py -prod
+```
 
 
 **get_results.py**
@@ -125,7 +137,9 @@ This script retrieves results for a HIT with its HITId stored in `logs/hit_info*
 
 We launched a HIT in Production mode, and we want to check the progress of workers. We should run:
 
-    `python get_results.py -prod`
+```
+python get_results.py -prod
+```
 
 
 ### Study-Specific Files
@@ -137,36 +151,40 @@ These are the files you'll want to modify to run your own HITs.
 This script contains all the variable assignments that tell MTurk how to run your HIT. These are all the things that used to be specified in the .properties file for an external HIT when using the old command line interface (CLI). This file approximates the old study specification behavior using Python lists and dictionaries. 
 We'll walk through the contents of the file I've provided in this repo to illustrate how you can modify it to set up your own HIT. First, the script `study_spec.py` defines a dictionary called `spec` containting information about the HIT title, description, reward, number of assignments, duration, etc.
 
-    spec = {
-        'title': 'Title of HIT',
-        'description': 'This is the cursory description of the HIT that workers see before they choose to preview the HIT.',
-        'keywords': 'keywords, separated, by, commas',
-        'reward': '1.00',                # Reward is in dollars as a string.
-        'assignments': 9,                # The number of assignments we want to run as an integer.
-        'hit_lifetime': 259200,          # These last three variables are in seconds as integers.
-        'assignment_duration': 2400,
-        'auto_approval_delay': 604800
-    }
+```python
+spec = {
+    'title': 'Title of HIT',
+    'description': 'This is the cursory description of the HIT that workers see before they choose to preview the HIT.',
+    'keywords': 'keywords, separated, by, commas',
+    'reward': '1.00',                # Reward is in dollars as a string.
+    'assignments': 9,                # The number of assignments we want to run as an integer.
+    'hit_lifetime': 259200,          # These last three variables are in seconds as integers.
+    'assignment_duration': 2400,
+    'auto_approval_delay': 604800
+}
+```
 
 You'll want to change these values to set the behavior your want from the method [create_hit()](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/mturk.html#MTurk.Client.create_hit) from the `boto3` Python module, which is called when you run `python create_hit.py`.
 
 Second, the script `study_spec.py` defines a list of dictionaries called `qualifications`. This is used to determine which workers are elegable to discover, preview, and accept the HIT.
 
-    qualifications = [
-        { # HIT approval rate > 97%
-            'QualificationTypeId': '000000000000000000L0',
-            'Comparator': 'GreaterThan',
-            'IntegerValues': [97],
-            'ActionsGuarded': 'DiscoverPreviewAndAccept' 
-        }, { # Location in US
-            'QualificationTypeId': '00000000000000000071',
-            'Comparator': 'EqualTo',
-            'LocaleValues': [{
-                'Country': 'US' 
-            }],
-            'ActionsGuarded': 'DiscoverPreviewAndAccept' 
-        }
-    ]
+```python
+qualifications = [
+    { # HIT approval rate > 97%
+        'QualificationTypeId': '000000000000000000L0',
+        'Comparator': 'GreaterThan',
+        'IntegerValues': [97],
+        'ActionsGuarded': 'DiscoverPreviewAndAccept' 
+    }, { # Location in US
+        'QualificationTypeId': '00000000000000000071',
+        'Comparator': 'EqualTo',
+        'LocaleValues': [{
+            'Country': 'US' 
+        }],
+        'ActionsGuarded': 'DiscoverPreviewAndAccept' 
+    }
+]
+```
 
 You'll want to adjust the contents of `qualifications` to meet your needs. Find more information on how to specify MTurk qualifications requirements [here](https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_QualificationRequirementDataStructureArticle.html).
 
@@ -175,7 +193,9 @@ You'll want to adjust the contents of `qualifications` to meet your needs. Find 
 
 This file contains XML code that tells MTurk the url for your external HIT. To run your external HIT you will need to proved a link to your landing page in place of the dummy url in this file:
 
-    <ExternalURL>https://external_hit_hostserver_url/landing_page?</ExternalURL>
+```
+<ExternalURL>https://external_hit_hostserver_url/landing_page?</ExternalURL>
+```
 
 *If you intend to use `create_hit.py` to add a condition as a url parameter* (e.g., 'https://external_hit_hostserver_url/landing_page?*cond=control'): 
 
@@ -211,24 +231,32 @@ The following lists step through the most straightforward use cases for these sc
 1. Set up your HIT by creating a website, adding the landing page url to `study.question`, and filling in `study_spec.py` to meet your needs. *You should probably do Sandbox testing to check everything before launching in Production.*
 2. Launch multiple sets of HIT assignments simultaniously in Production mode by calling `create_hit.py` multiple times with different batch arguments. 
 
-    python create_hit.py -prod -cond condition1 -batch 1
-    python create_hit.py -prod -cond condition2 -batch 2
-    python create_hit.py -prod -cond condition3 -batch 3
+```
+python create_hit.py -prod -cond condition1 -batch 1
+python create_hit.py -prod -cond condition2 -batch 2
+python create_hit.py -prod -cond condition3 -batch 3
+```
 
 3. Get results from each set of HIT assignments launched in Production mode using the same batch arguments.
 
-    python get_results.py -prod -batch 1
-    python get_results.py -prod -batch 2
-    python get_results.py -prod -batch 3
+```
+python get_results.py -prod -batch 1
+python get_results.py -prod -batch 2
+python get_results.py -prod -batch 3
+```
 
 4. Approve work for each set of HIT assignments using the same batch arguments.
 
-    python approve_hit.py -prod -batch 1
-    python approve_hit.py -prod -batch 2
-    python approve_hit.py -prod -batch 3
+```
+python approve_hit.py -prod -batch 1
+python approve_hit.py -prod -batch 2
+python approve_hit.py -prod -batch 3
+```
 
 5. Delete each HIT using the same batch argument. 
     
-    python delete_hit.py -prod -batch 1
-    python delete_hit.py -prod -batch 2
-    python delete_hit.py -prod -batch 3
+```
+python delete_hit.py -prod -batch 1
+python delete_hit.py -prod -batch 2
+python delete_hit.py -prod -batch 3
+```
