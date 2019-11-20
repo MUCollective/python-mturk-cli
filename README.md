@@ -30,8 +30,7 @@ These scripts should work out of the box with no need to adjust them.
 
 **approve_hit.py**
 
-This script is used to approve work on assignments. The specific AssignmentIds that are approved are read in from the `logs/results*.log` file which is generated when you run `python get_results.py`. You can choose to skip over specific workers when approving a set of assignments for a HIT. Alternatively, you can choose to override previous rejections for a specific set of workers. 
-I have not implemented an analogous rejection script, as it is unethical to reject HIT assignments (i.e., refuse to pay workers for completed assignements) in most cases. However, this script could be easily modified to support such behavior if needed.
+This script is used to approve work on assignments. The specific AssignmentIds that are approved are read in from the `logs/results*.log` file which is generated when you run `python get_results.py`. You can choose to skip over specific workers when approving a set of assignments for a HIT. Alternatively, you can choose to override previous rejections for a specific set of workers. Once approved, a HIT assignment cannot be subsequently rejected.
 
 **Arguments:**
 
@@ -139,6 +138,26 @@ We launched a HIT in Production mode, and we want to check the progress of worke
 
 ```
 python get_results.py -prod
+```
+
+
+**reject_hit.py**
+
+This script is used to reject work on assignments. The specific AssignmentIds that are rejected are read in from the `logs/results*.log` file which is generated when you run `python get_results.py`. You must list the workerIds of workers whose assignments you wish to reject. 
+Note that *it is unethical to reject HIT assignments in most cases*, as this amounts to a refusal to pay workers for completed assignements.
+
+**Arguments:**
+
+* *'-prod'* -- Reject HIT assignments run in the Production mode, rather than the Sandbox (default). If you do not supply this argument, assignments will only be rejected if they were completed in the Sandbox.
+* *'-batch'* -- If you are running multiple batches of HITs at once (e.g., for different conditions in an experiment), you must designate a name for each batch using the *'-batch'* argument followed by a unique identifier for each batch. For example, calling `python reject_hit.py -batch 1 worker1234567` would reject the assignement stored in the file `logs/results-1.log` and submitted buy a worker with the workerId "worker1234567". Note that the batch name follows the *'-batch'* argument separated by a space.
+* *WorkerIds* -- When calling this script, you must supply as arguments the WorkerIds of one or more workers whose work you wish to reject. Only these workers will be rejected.
+
+**Example:**
+
+After launching a HIT in Production using `python create_hit.py -prod`, waiting for workers to finish their assignments, and generating a `logs/results.log` file using `python get_results.py -prod`, we see that a user has submitted a fake completion token without actually logging any responses. We can reject this worker's assignement by running:
+
+```
+python reject_hit.py -prod worker1234567
 ```
 
 

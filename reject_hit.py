@@ -7,11 +7,8 @@ from tzlocal import get_localzone as tzlocal
 # Use this boolean to control Production vs Sandbox mode (default to Sandbox).
 production = False
 
-# Use this string to differentiate batches of HIT assignments in order to run multiple batches concurrently.
+# Use this string to identify the batch of the HIT assignment.
 batch = ''
-
-# Use this boolean to indicate if we are overriding a rejection.
-override_reject = False
 
 # Use this list to store workerIds of interest. 
 # If we are overriding a previous rejection, only these workers will be approved.
@@ -25,14 +22,16 @@ if (len(sys.argv) > 1):
         if (sys.argv[i] == '-prod'):
             # Create session in Production mode.
             production = True
-        elif (sys.argv[i] == '-override'):
-            # Override a previous rejection by approving this HIT.
-            override_reject = True
         elif ((sys.argv[i] == '-batch') & (len(sys.argv) > (i + 1))):
             # Name .log files according to given batch name.
             batch = '-' + sys.argv[(i + 1)]
         elif (i > 0) and (sys.argv[i - 1] != '-batch'): 
             worker_list.append(sys.argv[i])
+
+# Check that user has supplied at least one workerId
+if not worker_list:
+    print("Please provide at least one workerId as an argument... terminating script")
+    sys.exit() 
 
 # Designate target url for either Production or Sandbox.
 if production:
@@ -62,20 +61,11 @@ if not assignments:
 
 # Iterate through assignments, approving them if they are not in the skip list.
 for assignment in assignments:    
-    # Determine whether or not and how to approve work depending on override_reject and worker_list arguments.
-    if (not override_reject) and (not assignment['WorkerId'] in worker_list):
-        # If we are not overrideing a previous reject, worker_list contains workers to skip.
-        print("*** Approving work for worker: " + assignment['WorkerId'] + " ***")
-        mturk.approve_assignment(
-            AssignmentId = assignment['AssignmentId'],
-            RequesterFeedback = 'Thank you for participating in our study.',
-            OverrideRejection = False
-        )
-    elif override_reject and (assignment['WorkerId'] in worker_list):
+    # Reject work from workers in worker_list arguments.
+    if (assignment['WorkerId'] in worker_list):
         # If we are overrideing a previous reject, worker_list contains workers to approve.
-        print("*** Overriding previous rejection for worker: " + assignment['WorkerId'] + " ***")
-        mturk.approve_assignment(
+        print("*** Rejecting assignment from worker: " + assignment['WorkerId'] + " ***")
+        mturk.reject_assignment(
             AssignmentId = assignment['AssignmentId'],
-            RequesterFeedback = 'Thank you for participating in our study.',
-            OverrideRejection = True
+            RequesterFeedback = "You did not submit complete work for this assignment."
         )
